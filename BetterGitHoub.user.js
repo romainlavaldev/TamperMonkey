@@ -53,11 +53,11 @@
 
         // Colors
         if ($a.text().trim() == 'Review required') {
-            $a.closest('.js-issue-row').css('background-color', '#6D0D1F')
+            $a.closest('.js-issue-row').css('background-color', '#895B06')
         } else if ($a.text().trim() == 'Approved') {
             $a.closest('.js-issue-row').css('background-color', '#074B2D')
         } else if ($a.text().trim() == 'Changes requested') {
-            $a.closest('.js-issue-row').css('background-color', '#895B06')
+            $a.closest('.js-issue-row').css('background-color', '#840B23')
         }
     }
 
