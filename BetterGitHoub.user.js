@@ -14,7 +14,6 @@
     'use strict';
 
     const rldev_projects = [
-        
     ];
 
     const user = '';
