@@ -15,7 +15,7 @@
 
     var rldev_projects = [
         {
-            display: 'Drouin',
+            display: 'Drouinx',
             id: 'Drouin-Core'
         },
         {
