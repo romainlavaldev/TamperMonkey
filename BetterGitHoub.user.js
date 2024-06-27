@@ -16,11 +16,13 @@
     var rldev_projects = [
         {
             display: 'Drouin',
-            id: 'Drouin-Core'
+            id: 'Drouin-Core',
+            project: '1'
         },
         {
             display: 'ITF',
-            id: 'ITF-Suivi_Dossiers'
+            id: 'ITF-Suivi_Dossiers',
+            project: '5'
         }
     ];
 
@@ -36,6 +38,7 @@
         <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; margin-left: auto; padding-left: 16px; padding-right: 16px;">
             <a href="/Team-AppliDev/${e.id}" class="color-fg-muted">${e.display}</a>
             <a href="/Team-AppliDev/${e.id}/pulls" class="color-fg-muted">PR</a>
+            <a href="/orgs/Team-AppliDev/projects/${e.project}" class="color-fg-muted">PROJ</a>
         </div>
     `));
     }
