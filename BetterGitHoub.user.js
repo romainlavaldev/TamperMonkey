@@ -13,10 +13,25 @@
 (function() {
     'use strict';
 
-    const rldev_projects = [
+    const fav_projects = [
+        {
+            display: 'Drouin',
+            id: 'Drouin-Core',
+            project: '1',
+            color: '#CCEDE2',
+            bg: '#00422C'
+        },
+        {
+            display: 'ITF',
+            id: 'ITF-Suivi_Dossiers',
+            project: '5',
+            color: '#eaf4d3',
+            bg: '#3f551f'
+        }
     ];
 
-    const user = '';
+    const lightTheme = $('html').attr('data-color-mode') == 'light';
+    const user = $('[data-login]').first().attr('data-login');
 
 
     waitForKeyElements('.AppHeader-globalBar-start', addFavoritesProjects);
@@ -25,8 +40,12 @@
 
     waitForKeyElements('#js-issues-toolbar a[href*="/pull"].tooltipped', customPrRows);
 
+    waitForKeyElements('[class*="TokenTextContainer"]', customTokens);
+
+    waitForKeyElements('.board-view-column-card > div', customCards);
+
     function addFavoritesProjects($container) {
-        rldev_projects.forEach(e => $container.append(`
+        fav_projects.forEach(e => $container.append(`
         <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; margin-left: auto; padding-left: 16px; padding-right: 16px; background-color: ${e.bg ?? 'transparent'};">
             <a href="/Team-AppliDev/${e.id}" class="color-fg-muted" style="color: ${e.color ?? 'var(--fgColor-muted)'} !important;">${e.display}</a>
             <a href="/Team-AppliDev/${e.id}/pulls" class="color-fg-muted" style="color: ${e.color ?? 'var(--fgColor-muted)'} !important;">PR</a>
@@ -38,6 +57,9 @@
     function addPrShortcut($container) {
         $container.append(`
         <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; padding-left: 16px; padding-right: 16px;">
+            <a href="/Team-AppliDev/" class="color-fg-muted">Applidev</a>
+        </div>
+        <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; padding-left: 16px; padding-right: 16px; margin-left: 8px;">
             <a href="https://github.com/pulls?q=is%3Aopen+is%3Apr+org%3ATeam-AppliDev+-reviewed-by%3A${user}+-author%3A${user}" class="color-fg-muted">PR to review</a>
         </div>
         <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; padding-left: 16px; padding-right: 16px; margin-left: 8px;">
@@ -53,11 +75,43 @@
 
         // Colors
         if ($a.text().trim() == 'Review required') {
-            $a.closest('.js-issue-row').css('background-color', '#895B06')
+            $a.closest('.js-issue-row').css('background-color', lightTheme ? '#ffbf48' : '#895B06')
         } else if ($a.text().trim() == 'Approved') {
-            $a.closest('.js-issue-row').css('background-color', '#074B2D')
+            $a.closest('.js-issue-row').css('background-color', lightTheme ? '#7cff8b' : '#074B2D')
         } else if ($a.text().trim() == 'Changes requested') {
-            $a.closest('.js-issue-row').css('background-color', '#840B23')
+            $a.closest('.js-issue-row').css('background-color', lightTheme ? '#ff6b6b' : '#840B23')
+        }
+    }
+
+    function customTokens($token) {
+        let tokenLeaf = $token.find(':not(:has(*))');
+        if (tokenLeaf.not(':has(*)')) {
+            tokenLeaf = $token;
+        }
+
+        if (tokenLeaf.text() == "XS") {
+            tokenLeaf.text(tokenLeaf.text() + " 0h-1h");
+        }if (tokenLeaf.text() == "S") {
+            tokenLeaf.text(tokenLeaf.text() + " 1h-0.5j");
+        }if (tokenLeaf.text() == "M") {
+            tokenLeaf.text(tokenLeaf.text() + " 0.5j-1j");
+        }if (tokenLeaf.text() == "L") {
+            tokenLeaf.text(tokenLeaf.text() + " 1j-2j");
+        }if (tokenLeaf.text() == "XL") {
+            tokenLeaf.text(tokenLeaf.text() + " 2j+");
+        }
+    }
+
+    function customCards($card) {
+        // double click on card to open issue
+        $card.on('dblclick', function() {
+            console.log($(this).find('a'))
+            $(this).find('a')[0].click();
+        });
+
+        // Color card assigned to me
+        if ($card.find('img[data-testid="github-avatar"]').attr('alt') == user) {
+            $card.css('background-color', lightTheme ? 'lavender' : 'darkslategrey');
         }
     }
 
