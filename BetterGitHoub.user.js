@@ -14,20 +14,7 @@
     'use strict';
 
     const fav_projects = [
-        {
-            display: 'Drouin',
-            id: 'Drouin-Core',
-            project: '1',
-            color: '#CCEDE2',
-            bg: '#00422C'
-        },
-        {
-            display: 'ITF',
-            id: 'ITF-Suivi_Dossiers',
-            project: '5',
-            color: '#eaf4d3',
-            bg: '#3f551f'
-        }
+
     ];
 
     const lightTheme = $('html').attr('data-color-mode') == 'light';
