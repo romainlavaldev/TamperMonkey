@@ -1,127 +1,57 @@
 // ==UserScript==
 // @name         BetterGitHoub
-// @namespace    http://tampermonkey.net/
-// @version      2024-06-25
-// @description  try to take over the world!
+// @namespace    applidev.com
+// @version      2024-08-08
+// @description  Github additions for applidev coworkers
 // @author       You
 // @match        *://github.com/*
 // @icon         https://github.githubassets.com/favicons/favicon.svg
 // @grant        GM_addStyle
 
-// @require https://code.jquery.com/jquery-3.6.0.min.js
+// @require https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
+// @updateURL https://github.com/romainlavaldev/TamperMonkey/raw/main/BetterGitHoub.user.js
+
 // ==/UserScript==
-(function() {
+
+
+(function () {
     'use strict';
 
+    //#region User datas
+    /*
+    {
+        display: 'Drouin',
+        id: 'Drouin-Core', // Trouvable dans l'url quand on est sur
+        project: '1', // Trouvable dans l'url quand on est sur le pr
+        color: '#CCEDE2',
+        bg: '#00422C'
+    }
+    */
     const fav_projects = [
-        
-    ];
 
+    ];
+    //#endregion User datas
+
+    //#region Extension datas
     const lightTheme = $('html').attr('data-color-mode') == 'light';
     const user = $('[data-login]').first().attr('data-login');
+    
+    const prShortcuts = [
+        ['Applidev', '/Team-AppliDev/'],
+        ['PR to review', `https://github.com/pulls?q=is%3Aopen+is%3Apr+org%3ATeam-AppliDev+review-requested%3A${user}+-author%3A${user}`],
+        ['My PR', `https://github.com/pulls?q=is%3Aopen+is%3Apr+org%3ATeam-AppliDev+author%3A${user}`],
+        ['My denied PR', `https://github.com/pulls?q=is%3Aclosed+is%3Apr+org%3ATeam-AppliDev+is%3Aunmerged+author%3A${user}`]
+    ];
 
-    GM_addStyle(`
-.search-input {
-width: unset;
-}
-
-.AppHeader .AppHeader-globalBar .AppHeader-search .AppHeader-search-whenRegular {
-min-width: unset;
-}
-    `);
-
-    waitForKeyElements('.AppHeader-globalBar-start', addFavoritesProjects);
-
-    waitForKeyElements('.AppHeader-context-full > nav > ul', addPrShortcut);
-
-    waitForKeyElements('a[href*="/pull"].tooltipped', customPrRows);
-
-    waitForKeyElements('[aria-label="Issues"] .js-issue-row', customIssueRow);
-
-    waitForKeyElements('[class*="TokenTextContainer"]', customTokens);
-
-    waitForKeyElements('.board-view-column-card > div', customCards);
-
-    waitForKeyElements('.AppHeader-logo, .header-logo, [href="https://github.com/"]:has(svg), [href="https://github.com"]:has(svg), [href="https://github.com/github"]:has(svg)', changeLogo);
-
-    function addFavoritesProjects($container) {
-        fav_projects.forEach(e => $container.append(`
-        <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; margin-left: auto; padding-left: 16px; padding-right: 16px; background-color: ${e.bg ?? 'transparent'};">
-            <a href="/Team-AppliDev/${e.id}" class="color-fg-muted" style="color: ${e.color ?? 'var(--fgColor-muted)'} !important;">${e.display}</a>
-            <a href="/Team-AppliDev/${e.id}/pulls" class="color-fg-muted" style="color: ${e.color ?? 'var(--fgColor-muted)'} !important;">PR</a>
-            <a href="/orgs/Team-AppliDev/projects/${e.project}" class="color-fg-muted" style="color: ${e.color ?? 'var(--fgColor-muted)'} !important;">PROJ</a>
-        </div>
-    `));
+    const tokenMap = {
+        "XS": "0h-1h",
+        "S": "1h-0.5j",
+        "M": "0.5j-1j",
+        "L": "1j-2j",
+        "XL": "2j+"
     }
 
-    function addPrShortcut($container) {
-        $container.append(`
-        <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; padding-left: 16px; padding-right: 16px;">
-            <a href="/Team-AppliDev/" class="color-fg-muted">Applidev</a>
-        </div>
-        <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; padding-left: 16px; padding-right: 16px; margin-left: 8px;">
-            <a href="https://github.com/pulls?q=is%3Aopen+is%3Apr+org%3ATeam-AppliDev+-reviewed-by%3A${user}+-author%3A${user}" class="color-fg-muted">PR to review</a>
-        </div>
-        <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; padding-left: 16px; padding-right: 16px; margin-left: 8px;">
-            <a href="https://github.com/pulls?q=is%3Aopen+is%3Apr+org%3ATeam-AppliDev" class="color-fg-muted">All PR</a>
-        </div>
-        <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; padding-left: 16px; padding-right: 16px; margin-left: 8px;">
-            <a href="https://github.com/pulls?q=is%3Aopen+is%3Apr+org%3ATeam-AppliDev+author%3A${user}" class="color-fg-muted">My PR</a>
-        </div>
-    `);
-    }
-
-    function customPrRows($a) {
-        // Colors
-        if ($a.text().trim() == 'Review required') {
-            $a.closest('.js-issue-row').css('background-color', lightTheme ? '#ffbf48' : '#895B06')
-        } else if ($a.text().trim() == 'Approved') {
-            $a.closest('.js-issue-row').css('background-color', lightTheme ? '#7cff8b' : '#074B2D')
-        } else if ($a.text().trim() == 'Changes requested') {
-            $a.closest('.js-issue-row').css('background-color', lightTheme ? '#ff6b6b' : '#840B23')
-        }
-    }
-
-    function customTokens($token) {
-        let tokenLeaf = $token.find(':not(:has(*))');
-        if (tokenLeaf.not(':has(*)')) {
-            tokenLeaf = $token;
-        }
-
-        if (tokenLeaf.text() == "XS") {
-            tokenLeaf.text(tokenLeaf.text() + " 0h-1h");
-        }if (tokenLeaf.text() == "S") {
-            tokenLeaf.text(tokenLeaf.text() + " 1h-0.5j");
-        }if (tokenLeaf.text() == "M") {
-            tokenLeaf.text(tokenLeaf.text() + " 0.5j-1j");
-        }if (tokenLeaf.text() == "L") {
-            tokenLeaf.text(tokenLeaf.text() + " 1j-2j");
-        }if (tokenLeaf.text() == "XL") {
-            tokenLeaf.text(tokenLeaf.text() + " 2j+");
-        }
-    }
-
-    function customCards($card) {
-        // double click on card to open issue
-        $card.on('dblclick', function() {
-            console.log($(this).find('a'))
-            $(this).find('a')[0].click();
-        });
-
-        // Color card assigned to me
-        if ($card.find('img[data-testid="github-avatar"]').attr('alt') == user) {
-            $card.css('background-color', lightTheme ? 'lavender' : 'darkslategrey');
-        }
-    }
-
-    function customIssueRow($issue) {
-        if ($issue.find('img.avatar-user').attr('alt')?.replace('@', '') == user) {
-            $issue.css('background-color', lightTheme ? 'lavender' : 'darkslategrey');
-        }
-    }
-
-    function changeLogo($logoLink) {
-        $logoLink.empty().append(`
+    const logoSvg = `
         <svg height="32" aria-hidden="true" viewBox="0 0 299 299" version="1.1" width="32" data-view-component="true" class="octicon octicon-mark-github v-align-middle color-fg-default">
             <g transform="translate(0.000000,299.000000) scale(0.100000,-0.100000)"
 fill="#ea5e21" stroke="none">
@@ -145,17 +75,144 @@ m380 -76 c513 -90 954 -475 1109 -970 52 -167 61 -235 61 -444 -1 -176 -3
 121 -19 20 -555 -232 -814 -382 -345 -201 -694 -466 -819 -624 -82 -103 -103
 -166 -76 -229 11 -26 -20 -22 -40 6 -23 33 -71 190 -91 298 -23 126 -23 361 0
 488 90 494 419 900 878 1085 104 42 262 82 373 95 102 12 294 5 410 -15z"/>
-
             </svg>
             </g>
-        `);
+    `;
+
+    const style = `
+        .search-input {
+            width: unset;
+        }
+
+        .AppHeader .AppHeader-globalBar .AppHeader-search .AppHeader-search-whenRegular {
+            min-width: unset;
+        }
+    `;
+    //#endregion Extension datas
+
+    GM_addStyle(style);
+
+    //#region Favorite Projects
+    waitForKeyElements('.AppHeader-globalBar-start', addFavoritesProjects);
+
+    function addFavoritesProjects($container) {
+        const favProjectsElem = fav_projects.map(generateFavProjectCard);
+
+        const $existingFavProjectsContainer = $('#apdv-fav-projects-container')
+        if ($existingFavProjectsContainer.length > 0) {
+            $existingFavProjectsContainer.html(favProjectsElem);
+        } else {
+            $container.append(`
+                <div id="apdv-fav-projects-container" style="display: flex; gap: 16px; align-items: center;">
+                    ${favProjectsElem.join('</br>')}
+                </div>
+            `);
+        }
     }
 
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    function generateFavProjectCard(project) {
+        return `
+            <div id="apdv-fav-projects" class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; margin-left: auto; padding-left: 16px; padding-right: 16px; background-color: ${project.bg ?? 'transparent'};">
+                <a href="/Team-AppliDev/${project.id}" class="color-fg-muted" style="color: ${project.color ?? 'var(--fgColor-muted)'} !important;">${project.display}</a>
+                <a href="/Team-AppliDev/${project.id}/pulls" class="color-fg-muted" style="color: ${project.color ?? 'var(--fgColor-muted)'} !important;">PR</a>
+                <a href="/orgs/Team-AppliDev/projects/${project.project}" class="color-fg-muted" style="color: ${project.color ?? 'var(--fgColor-muted)'} !important;">PROJ</a>
+            </div>
+        `;
     }
+    //#endregion Favorite Projects
+
+    //#region PR Shortcuts
+    waitForKeyElements('.AppHeader-context-full > nav > ul', addPrShortcut);
+
+    function addPrShortcut($container) {
+        const prShortcutElem = prShortcuts.map(shortcut => generatePrShortcut(shortcut[0], shortcut[1]));
+
+        const $existingPrShortcutContainer = $('#apdv-pr-shortcut-container')
+        if ($existingPrShortcutContainer.length > 0) {
+            $existingPrShortcutContainer.html(prShortcutElem);
+        } else {
+            $container.append(`
+                <div id="apdv-pr-shortcut-container" style="display: flex; gap: 4px; align-items: center;">
+                    ${prShortcutElem.join('</br>')}
+                </div>
+            `);
+        }
+    }
+
+    function generatePrShortcut(display, link) {
+        return `
+            <div class="Button Button--iconOnly Button--secondary Button--medium AppHeader-button color-fg-muted" style="display: flex; gap: 16px; padding-left: 16px; padding-right: 16px;">
+                <a href="${link}" class="color-fg-muted">${display}</a>
+            </div>
+        `;
+    }
+    //#endregion PR Shortcuts
+
+    //#region Custom PR Rows
+    waitForKeyElements('a[href*="/pull"].tooltipped', customPrRows);
+
+    function customPrRows($a) {
+        // Row color from status
+        $a.closest('.js-issue-row').css('background-color', getPrRowColorFromStatus($a.text().trim()));
+    }
+
+    function getPrRowColorFromStatus(status) {
+        switch (status) {
+            case 'Review required':
+                return lightTheme ? '#FFBF48' : '#895B06'
+            case 'Approved':
+                return lightTheme ? '#7CFF8B' : '#074B2D'
+            case 'Changes requested':
+                return lightTheme ? '#FF6B6B' : '#840B23'
+            default:
+                break;
+        }
+    }
+    //#endregion Custom PR Rows
+
+    //#region Issues Row
+    waitForKeyElements('[aria-label="Issues"] .js-issue-row', customIssueRow);
+
+    function customIssueRow($issue) {
+        if ($issue.find('img.avatar-user').attr('alt')?.replace('@', '') == user) {
+            $issue.css('background-color', lightTheme ? 'lavender' : 'darkslategrey');
+        }
+    }
+    //#endregion Issues Row
+    
+    //#region Issues Project Cards
+    waitForKeyElements('[class*="TokenTextContainer"]', customTokens);
+    waitForKeyElements('.board-view-column-card > div', customCards);
+
+    function customTokens($token) {
+        let tokenLeaf = $token.find(':not(:has(*))');
+        
+        tokenLeaf.text(`${tokenLeaf.text()} ${tokenMap[tokenLeaf.text().trim()] ?? ''}`);
+    }
+
+    function customCards($card) {
+        // double click on card to open issue
+        $card.on('dblclick', function () {
+            $(this).find('a')[0].click();
+        });
+
+        // Color card assigned to me
+        if ($card.find('img[data-testid="github-avatar"]').attr('alt') == user) {
+            $card.css('background-color', lightTheme ? 'lavender' : 'darkslategrey');
+        }
+    }
+    //#endregion Issues Project Cards
+
+    //#region Logo Change
+    waitForKeyElements('.AppHeader-logo, .header-logo, [href="https://github.com/"]:has(svg), [href="https://github.com"]:has(svg), [href="https://github.com/github"]:has(svg)', changeLogo);
+
+    function changeLogo($logoLink) {
+        $logoLink.html(logoSvg);
+    }
+    //#endregion Logo Change
 })();
 
+//#region Wait for key element
 /*--- waitForKeyElements():  A utility function, for Greasemonkey scripts,
     that detects and handles AJAXed content.
 
@@ -173,78 +230,79 @@ m380 -76 c513 -90 954 -475 1109 -970 52 -167 61 -235 61 -444 -1 -176 -3
 
     IMPORTANT: This function requires your script to have loaded jQuery.
 */
-function waitForKeyElements (
-selectorTxt,    /* Required: The jQuery selector string that
+function waitForKeyElements(
+    selectorTxt,    /* Required: The jQuery selector string that
                         specifies the desired element(s).
                     */
- actionFunction, /* Required: The code to run when elements are
+    actionFunction, /* Required: The code to run when elements are
                         found. It is passed a jNode to the matched
                         element.
                     */
- bWaitOnce,      /* Optional: If false, will continue to scan for
+    bWaitOnce,      /* Optional: If false, will continue to scan for
                         new elements even after the first match is
                         found.
                     */
- iframeSelector  /* Optional: If set, identifies the iframe to
+    iframeSelector  /* Optional: If set, identifies the iframe to
                         search.
                     */
 ) {
     var targetNodes, btargetsFound;
 
     if (typeof iframeSelector == "undefined")
-        targetNodes     = $(selectorTxt);
+        targetNodes = $(selectorTxt);
     else
-        targetNodes     = $(iframeSelector).contents ()
-            .find (selectorTxt);
+        targetNodes = $(iframeSelector).contents()
+            .find(selectorTxt);
 
-    if (targetNodes  &&  targetNodes.length > 0) {
-        btargetsFound   = true;
+    if (targetNodes && targetNodes.length > 0) {
+        btargetsFound = true;
         /*--- Found target node(s).  Go through each and act if they
             are new.
         */
-        targetNodes.each ( function () {
-            var jThis        = $(this);
-            var alreadyFound = jThis.data ('alreadyFound')  ||  false;
+        targetNodes.each(function () {
+            var jThis = $(this);
+            var alreadyFound = jThis.data('alreadyFound') || false;
 
             if (!alreadyFound) {
                 //--- Call the payload function.
-                var cancelFound     = actionFunction (jThis);
+                var cancelFound = actionFunction(jThis);
                 if (cancelFound)
-                    btargetsFound   = false;
+                    btargetsFound = false;
                 else
-                    jThis.data ('alreadyFound', true);
+                    jThis.data('alreadyFound', true);
             }
-        } );
+        });
     }
     else {
-        btargetsFound   = false;
+        btargetsFound = false;
     }
 
     //--- Get the timer-control variable for this selector.
-    var controlObj      = waitForKeyElements.controlObj  ||  {};
-    var controlKey      = selectorTxt.replace (/[^\w]/g, "_");
-    var timeControl     = controlObj [controlKey];
+    var controlObj = waitForKeyElements.controlObj || {};
+    var controlKey = selectorTxt.replace(/[^\w]/g, "_");
+    var timeControl = controlObj[controlKey];
 
     //--- Now set or clear the timer as appropriate.
-    if (btargetsFound  &&  bWaitOnce  &&  timeControl) {
+    if (btargetsFound && bWaitOnce && timeControl) {
         //--- The only condition where we need to clear the timer.
-        clearInterval (timeControl);
-        delete controlObj [controlKey]
+        clearInterval(timeControl);
+        delete controlObj[controlKey]
     }
     else {
         //--- Set a timer, if needed.
-        if ( ! timeControl) {
-            timeControl = setInterval ( function () {
-                waitForKeyElements (    selectorTxt,
-                                    actionFunction,
-                                    bWaitOnce,
-                                    iframeSelector
-                                   );
+        if (!timeControl) {
+            timeControl = setInterval(function () {
+                waitForKeyElements(selectorTxt,
+                    actionFunction,
+                    bWaitOnce,
+                    iframeSelector
+                );
             },
-                                       300
-                                      );
-            controlObj [controlKey] = timeControl;
+                300
+            );
+            controlObj[controlKey] = timeControl;
         }
     }
-    waitForKeyElements.controlObj   = controlObj;
+    waitForKeyElements.controlObj = controlObj;
 }
+//#endregion Wait for key element
