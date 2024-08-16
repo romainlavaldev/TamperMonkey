@@ -10,6 +10,7 @@
 
 // @require https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js
 // @updateURL https://github.com/romainlavaldev/TamperMonkey/raw/main/BetterGitHoub_Review.user.js
+// @downloadURL https://github.com/romainlavaldev/TamperMonkey/raw/main/BetterGitHoub_Review.user.js
 
 // ==/UserScript==
 (function () {
