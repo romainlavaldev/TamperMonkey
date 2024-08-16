@@ -29,13 +29,7 @@
     }
     */
     const fav_projects = [
-        {
-            display: 'Drouin',
-            id: 'Drouin-Core', // Trouvable dans l'url quand on est sur
-            project: '1', // Trouvable dans l'url quand on est sur le pr
-            color: '#CCEDE2',
-            bg: '#00422C'
-        }
+
     ];
     //#endregion User datas
 
